@@ -8,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type SchoolSettings, genId, storage } from "@/utils/storage";
-import { CheckCircle } from "lucide-react";
+import { addAdmission, genId } from "@/utils/firebaseService";
+import type { SchoolSettings } from "@/utils/storage";
+import { CheckCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
@@ -25,6 +26,7 @@ export function AdmissionsPage({ settings }: Props) {
   });
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   function validate(): string {
     if (!form.name.trim()) return "Student name is required.";
@@ -36,26 +38,31 @@ export function AdmissionsPage({ settings }: Props) {
     return "";
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const err = validate();
     if (err) {
       setError(err);
       return;
     }
-    const admissions = storage.getAdmissions();
-    admissions.push({
-      id: genId(),
-      name: form.name.trim(),
-      fatherName: form.fatherName.trim(),
-      class: form.class,
-      phone: form.phone.replace(/\D/g, ""),
-      createdAt: new Date().toISOString(),
-      status: "pending",
-    });
-    storage.setAdmissions(admissions);
-    setSubmitted(true);
-    setError("");
+    setSaving(true);
+    try {
+      await addAdmission({
+        id: genId(),
+        name: form.name.trim(),
+        fatherName: form.fatherName.trim(),
+        class: form.class,
+        phone: form.phone.replace(/\D/g, ""),
+        createdAt: new Date().toISOString(),
+        status: "pending",
+      });
+      setSubmitted(true);
+      setError("");
+    } catch (_e) {
+      setError("Failed to submit. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (submitted) {
@@ -188,9 +195,17 @@ export function AdmissionsPage({ settings }: Props) {
           <Button
             type="submit"
             data-ocid="admissions.submit_button"
+            disabled={saving}
             className="w-full bg-gold hover:bg-amber-600 text-white font-semibold py-3 text-base"
           >
-            Submit Application
+            {saving ? (
+              <>
+                <Loader2 size={16} className="animate-spin mr-2" />{" "}
+                Submitting...
+              </>
+            ) : (
+              "Submit Application"
+            )}
           </Button>
         </form>
       </div>

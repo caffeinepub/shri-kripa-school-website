@@ -5,16 +5,33 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  type AdminCredentials,
-  type Admission,
-  type AdmissionStatus,
-  type GalleryImage,
-  type SchoolEvent,
-  type SchoolSettings,
-  type Teacher,
+  addGalleryImage,
+  deleteEvent,
+  deleteGalleryImage,
+  deleteTeacher,
   genId,
-  storage,
+  getAdmissions,
+  getCredentials,
+  getEvents,
+  getGallery,
+  getSettings,
+  getTeachers,
+  saveCredentials,
+  saveEvent,
+  saveSettings,
+  saveTeacher,
+  updateAdmissionStatus,
+} from "@/utils/firebaseService";
+import type {
+  AdminCredentials,
+  Admission,
+  AdmissionStatus,
+  GalleryImage,
+  SchoolEvent,
+  SchoolSettings,
+  Teacher,
 } from "@/utils/storage";
+import { DEFAULT_SETTINGS } from "@/utils/storage";
 import {
   AlertTriangle,
   Calendar,
@@ -33,27 +50,30 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-// ─── Login ─────────────────────────────────────────────────────────────────────
+// ─── Login ────────────────────────────────────────────────────────────────────
 function Login({ onLogin }: { onLogin: () => void }) {
   const [u, setU] = useState("");
   const [p, setP] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handle(e: React.FormEvent) {
+  async function handle(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      const creds = storage.getCredentials();
+    try {
+      const creds = await getCredentials();
       if (u === creds.username && p === creds.password) {
         onLogin();
       } else {
         setErr("Invalid username or password.");
       }
+    } catch {
+      setErr("Connection error. Please try again.");
+    } finally {
       setLoading(false);
-    }, 400);
+    }
   }
 
   return (
@@ -127,7 +147,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-// ─── Dashboard ─────────────────────────────────────────────────────────────────
+// ─── Dashboard ────────────────────────────────────────────────────────────────────
 function Dashboard({ admissions }: { admissions: Admission[] }) {
   const total = admissions.length;
   const pending = admissions.filter((a) => a.status === "pending").length;
@@ -183,16 +203,23 @@ function Dashboard({ admissions }: { admissions: Admission[] }) {
   );
 }
 
-// ─── Applications ──────────────────────────────────────────────────────────────
+// ─── Applications ─────────────────────────────────────────────────────────────────
 function ApplicationsTab() {
-  const [admissions, setAdmissions] = useState<Admission[]>(() =>
-    storage.getAdmissions(),
-  );
+  const [admissions, setAdmissions] = useState<Admission[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
-  function setStatus(id: string, status: AdmissionStatus) {
-    const updated = admissions.map((a) => (a.id === id ? { ...a, status } : a));
-    setAdmissions(updated);
-    storage.setAdmissions(updated);
+  useEffect(() => {
+    getAdmissions().then((data) => {
+      setAdmissions(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function setStatus(id: string, status: AdmissionStatus) {
+    setAdmissions((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status } : a)),
+    );
+    await updateAdmissionStatus(id, status);
   }
 
   const pending = admissions.filter((a) => a.status === "pending");
@@ -247,9 +274,16 @@ function ApplicationsTab() {
     );
   }
 
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 size={32} className="animate-spin text-navy" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Pending */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />
@@ -265,8 +299,6 @@ function ApplicationsTab() {
           )}
         </div>
       </div>
-
-      {/* Contacted */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
@@ -284,8 +316,6 @@ function ApplicationsTab() {
           )}
         </div>
       </div>
-
-      {/* Not Attended */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" />
@@ -307,39 +337,49 @@ function ApplicationsTab() {
   );
 }
 
-// ─── Teachers Admin ─────────────────────────────────────────────────────────────
+// ─── Teachers Admin ──────────────────────────────────────────────────────────────────
 function TeachersAdmin() {
-  const [teachers, setTeachers] = useState<Teacher[]>(() =>
-    storage.getTeachers(),
-  );
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [form, setForm] = useState({ name: "", speciality: "", photo: "" });
   const [editId, setEditId] = useState<string | null>(null);
   const [showCrop, setShowCrop] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  function save() {
+  useEffect(() => {
+    getTeachers().then((data) => {
+      setTeachers(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function save() {
+    if (!form.name.trim()) return;
     setSaving(true);
-    setTimeout(() => {
-      let updated: Teacher[];
+    try {
+      const id = editId ?? genId();
+      const teacher: Teacher = {
+        id,
+        name: form.name.trim(),
+        speciality: form.speciality.trim(),
+        photo: form.photo,
+      };
+      await saveTeacher(teacher);
       if (editId) {
-        updated = teachers.map((t) =>
-          t.id === editId ? { ...t, ...form } : t,
-        );
+        setTeachers((prev) => prev.map((t) => (t.id === editId ? teacher : t)));
       } else {
-        updated = [...teachers, { id: genId(), ...form }];
+        setTeachers((prev) => [...prev, teacher]);
       }
-      storage.setTeachers(updated);
-      setTeachers(updated);
       setForm({ name: "", speciality: "", photo: "" });
       setEditId(null);
+    } finally {
       setSaving(false);
-    }, 200);
+    }
   }
 
-  function del(id: string) {
-    const updated = teachers.filter((t) => t.id !== id);
-    storage.setTeachers(updated);
-    setTeachers(updated);
+  async function del(id: string) {
+    await deleteTeacher(id);
+    setTeachers((prev) => prev.filter((t) => t.id !== id));
   }
 
   function startEdit(t: Teacher) {
@@ -349,7 +389,6 @@ function TeachersAdmin() {
 
   return (
     <div className="space-y-6">
-      {/* Form */}
       <div className="bg-white rounded-xl p-6 border border-amber-100 shadow-sm">
         <h3 className="font-bold text-navy mb-4">
           {editId ? "Edit Teacher" : "Add New Teacher"}
@@ -440,52 +479,57 @@ function TeachersAdmin() {
         </div>
       </div>
 
-      {/* List */}
-      <div className="grid sm:grid-cols-2 gap-3">
-        {teachers.map((t, i) => (
-          <div
-            key={t.id}
-            data-ocid={`teachers.item.${i + 1}`}
-            className="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex items-center gap-3"
-          >
-            {t.photo ? (
-              <img
-                src={t.photo}
-                alt={t.name}
-                className="w-12 h-12 rounded-full object-cover border-2 border-gold"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-2 border-amber-200">
-                <span className="text-lg font-bold text-navy">
-                  {t.name.charAt(0)}
-                </span>
+      {loadingData ? (
+        <div className="flex justify-center py-8">
+          <Loader2 size={24} className="animate-spin text-navy" />
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-3">
+          {teachers.map((t, i) => (
+            <div
+              key={t.id}
+              data-ocid={`teachers.item.${i + 1}`}
+              className="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex items-center gap-3"
+            >
+              {t.photo ? (
+                <img
+                  src={t.photo}
+                  alt={t.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-gold"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-2 border-amber-200">
+                  <span className="text-lg font-bold text-navy">
+                    {t.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-navy truncate">{t.name}</p>
+                <p className="text-gray-500 text-sm">{t.speciality}</p>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-navy truncate">{t.name}</p>
-              <p className="text-gray-500 text-sm">{t.speciality}</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  data-ocid={`teachers.edit_button.${i + 1}`}
+                  onClick={() => startEdit(t)}
+                  className="p-1.5 rounded hover:bg-amber-50 text-navy"
+                >
+                  <Edit2 size={14} />
+                </button>
+                <button
+                  type="button"
+                  data-ocid={`teachers.delete_button.${i + 1}`}
+                  onClick={() => del(t.id)}
+                  className="p-1.5 rounded hover:bg-red-50 text-red-500"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                data-ocid={`teachers.edit_button.${i + 1}`}
-                onClick={() => startEdit(t)}
-                className="p-1.5 rounded hover:bg-amber-50 text-navy"
-              >
-                <Edit2 size={14} />
-              </button>
-              <button
-                type="button"
-                data-ocid={`teachers.delete_button.${i + 1}`}
-                onClick={() => del(t.id)}
-                className="p-1.5 rounded hover:bg-red-50 text-red-500"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {showCrop && (
         <ImageCropModal
@@ -501,44 +545,64 @@ function TeachersAdmin() {
   );
 }
 
-// ─── Gallery Admin ──────────────────────────────────────────────────────────────
+// ─── Gallery Admin ──────────────────────────────────────────────────────────────────
 function GalleryAdmin() {
-  const [gallery, setGallery] = useState<GalleryImage[]>(() =>
-    storage.getGallery(),
-  );
+  const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [showCrop, setShowCrop] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  function addImage(dataUrl: string) {
-    const updated = [
-      ...gallery,
-      { id: genId(), imageUrl: dataUrl, createdAt: new Date().toISOString() },
-    ];
-    storage.setGallery(updated);
-    setGallery(updated);
+  useEffect(() => {
+    getGallery().then((data) => {
+      setGallery(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function addImage(dataUrl: string) {
+    setUploading(true);
+    try {
+      const id = genId();
+      const img = await addGalleryImage(dataUrl, id);
+      setGallery((prev) => [...prev, img]);
+    } finally {
+      setUploading(false);
+    }
   }
 
-  function del(id: string) {
-    const updated = gallery.filter((g) => g.id !== id);
-    storage.setGallery(updated);
-    setGallery(updated);
+  async function del(id: string) {
+    await deleteGalleryImage(id);
+    setGallery((prev) => prev.filter((g) => g.id !== id));
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-gray-500 text-sm">
-          {gallery.length} image{gallery.length !== 1 ? "s" : ""} in gallery
+          {loadingData
+            ? "Loading..."
+            : `${gallery.length} image${gallery.length !== 1 ? "s" : ""} in gallery`}
         </p>
         <Button
           data-ocid="gallery.upload_button"
           onClick={() => setShowCrop(true)}
+          disabled={uploading}
           className="bg-navy hover:bg-navy/90 text-white"
         >
-          <Plus size={16} className="mr-1" /> Add Image
+          {uploading ? (
+            <Loader2 size={14} className="animate-spin mr-1" />
+          ) : (
+            <Plus size={16} className="mr-1" />
+          )}
+          Add Image
         </Button>
       </div>
 
-      {gallery.length === 0 ? (
+      {loadingData ? (
+        <div className="flex justify-center py-16">
+          <Loader2 size={32} className="animate-spin text-navy" />
+        </div>
+      ) : gallery.length === 0 ? (
         <div
           data-ocid="gallery.empty_state"
           className="text-center py-16 border-2 border-dashed border-amber-200 rounded-xl text-gray-400"
@@ -588,52 +652,57 @@ function GalleryAdmin() {
   );
 }
 
-// ─── Events Admin ────────────────────────────────────────────────────────────
+// ─── Events Admin ───────────────────────────────────────────────────────────────────
 function EventsAdmin() {
-  const [events, setEvents] = useState<SchoolEvent[]>(() =>
-    storage.getEvents(),
-  );
+  const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [newTitle, setNewTitle] = useState("");
-  const [showCrop, setShowCrop] = useState<string | null>(null); // eventId
+  const [showCrop, setShowCrop] = useState<string | null>(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
 
-  function addEvent() {
+  useEffect(() => {
+    getEvents().then((data) => {
+      setEvents(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function addEvent() {
     if (!newTitle.trim()) return;
-    const updated = [
-      ...events,
-      { id: genId(), title: newTitle.trim(), images: [] },
-    ];
-    storage.setEvents(updated);
-    setEvents(updated);
+    const ev: SchoolEvent = { id: genId(), title: newTitle.trim(), images: [] };
+    await saveEvent(ev);
+    setEvents((prev) => [...prev, ev]);
     setNewTitle("");
   }
 
-  function delEvent(id: string) {
-    const updated = events.filter((e) => e.id !== id);
-    storage.setEvents(updated);
-    setEvents(updated);
+  async function delEvent(id: string) {
+    await deleteEvent(id);
+    setEvents((prev) => prev.filter((e) => e.id !== id));
   }
 
-  function addImageToEvent(eventId: string, dataUrl: string) {
-    const updated = events.map((e) =>
-      e.id === eventId ? { ...e, images: [...e.images, dataUrl] } : e,
-    );
-    storage.setEvents(updated);
-    setEvents(updated);
+  async function addImageToEvent(eventId: string, dataUrl: string) {
+    setUploadingImg(true);
+    try {
+      const ev = events.find((e) => e.id === eventId);
+      if (!ev) return;
+      const updated = { ...ev, images: [...ev.images, dataUrl] };
+      const saved = await saveEvent(updated);
+      setEvents((prev) => prev.map((e) => (e.id === eventId ? saved : e)));
+    } finally {
+      setUploadingImg(false);
+    }
   }
 
-  function delImageFromEvent(eventId: string, idx: number) {
-    const updated = events.map((e) =>
-      e.id === eventId
-        ? { ...e, images: e.images.filter((_, i) => i !== idx) }
-        : e,
-    );
-    storage.setEvents(updated);
-    setEvents(updated);
+  async function delImageFromEvent(eventId: string, idx: number) {
+    const ev = events.find((e) => e.id === eventId);
+    if (!ev) return;
+    const updated = { ...ev, images: ev.images.filter((_, i) => i !== idx) };
+    await saveEvent(updated);
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? updated : e)));
   }
 
   return (
     <div className="space-y-6">
-      {/* Create event */}
       <div className="bg-white rounded-xl p-4 border border-amber-100 shadow-sm">
         <Label className="text-navy font-medium">Create New Event</Label>
         <div className="flex gap-2 mt-1">
@@ -646,7 +715,7 @@ function EventsAdmin() {
             onKeyDown={(e) => e.key === "Enter" && addEvent()}
           />
           <Button
-            data-ocid="events.add_button"
+            data-ocid="events.create_button"
             onClick={addEvent}
             disabled={!newTitle.trim()}
             className="bg-navy hover:bg-navy/90 text-white shrink-0"
@@ -656,7 +725,11 @@ function EventsAdmin() {
         </div>
       </div>
 
-      {events.length === 0 ? (
+      {loadingData ? (
+        <div className="flex justify-center py-16">
+          <Loader2 size={32} className="animate-spin text-navy" />
+        </div>
+      ) : events.length === 0 ? (
         <div
           data-ocid="events.empty_state"
           className="text-center py-16 border-2 border-dashed border-amber-200 rounded-xl text-gray-400"
@@ -684,9 +757,15 @@ function EventsAdmin() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowCrop(ev.id)}
+                  disabled={uploadingImg}
                   className="text-xs border-amber-200 text-navy"
                 >
-                  <Plus size={12} className="mr-1" /> Add Photo
+                  {uploadingImg && showCrop === ev.id ? (
+                    <Loader2 size={12} className="animate-spin mr-1" />
+                  ) : (
+                    <Plus size={12} className="mr-1" />
+                  )}
+                  Add Photo
                 </Button>
                 <button
                   type="button"
@@ -741,17 +820,39 @@ function EventsAdmin() {
   );
 }
 
-// ─── Settings Admin ─────────────────────────────────────────────────────────────
+// ─── Settings Admin ──────────────────────────────────────────────────────────────────
 function SettingsAdmin() {
-  const [s, setS] = useState<SchoolSettings>(() => storage.getSettings());
+  const [s, setS] = useState<SchoolSettings>(DEFAULT_SETTINGS);
+  const [loadingData, setLoadingData] = useState(true);
   const [showLogoCrop, setShowLogoCrop] = useState(false);
   const [showBannerCrop, setShowBannerCrop] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  function save() {
-    storage.setSettings(s);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  useEffect(() => {
+    getSettings().then((data) => {
+      setS(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveSettings(s);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loadingData) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 size={32} className="animate-spin text-navy" />
+      </div>
+    );
   }
 
   return (
@@ -880,7 +981,6 @@ function SettingsAdmin() {
         </div>
       </div>
 
-      {/* Logo upload */}
       <div>
         <Label className="text-navy font-medium">School Logo</Label>
         <div className="mt-2 flex items-center gap-4">
@@ -915,7 +1015,6 @@ function SettingsAdmin() {
         </div>
       </div>
 
-      {/* Banner upload */}
       <div>
         <Label className="text-navy font-medium">Hero Banner Image</Label>
         <div className="mt-2">
@@ -953,14 +1052,17 @@ function SettingsAdmin() {
       <Button
         data-ocid="settings.save_button"
         onClick={save}
+        disabled={saving}
         className="bg-navy hover:bg-navy/90 text-white"
       >
-        {saved ? (
+        {saving ? (
+          <Loader2 size={16} className="animate-spin mr-2" />
+        ) : saved ? (
           <Check size={16} className="mr-2 text-green-400" />
         ) : (
           <Settings size={16} className="mr-2" />
         )}
-        {saved ? "Saved!" : "Save Settings"}
+        {saving ? "Saving to Firebase..." : saved ? "Saved!" : "Save Settings"}
       </Button>
 
       {showLogoCrop && (
@@ -987,16 +1089,26 @@ function SettingsAdmin() {
   );
 }
 
-// ─── Credentials Admin ──────────────────────────────────────────────────────────
+// ─── Credentials Admin ────────────────────────────────────────────────────────────────
 function CredentialsAdmin() {
-  const [creds, setCreds] = useState<AdminCredentials>(() =>
-    storage.getCredentials(),
-  );
+  const [creds, setCreds] = useState<AdminCredentials>({
+    username: "",
+    password: "",
+  });
+  const [loadingData, setLoadingData] = useState(true);
   const [confirm, setConfirm] = useState("");
   const [err, setErr] = useState("");
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  function save() {
+  useEffect(() => {
+    getCredentials().then((data) => {
+      setCreds(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function save() {
     if (!creds.username.trim()) {
       setErr("Username cannot be empty.");
       return;
@@ -1009,10 +1121,23 @@ function CredentialsAdmin() {
       setErr("Passwords do not match.");
       return;
     }
-    storage.setCredentials(creds);
-    setSaved(true);
-    setErr("");
-    setTimeout(() => setSaved(false), 2000);
+    setSaving(true);
+    try {
+      await saveCredentials(creds);
+      setSaved(true);
+      setErr("");
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loadingData) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 size={32} className="animate-spin text-navy" />
+      </div>
+    );
   }
 
   return (
@@ -1061,9 +1186,12 @@ function CredentialsAdmin() {
       <Button
         data-ocid="credentials.save_button"
         onClick={save}
+        disabled={saving}
         className="bg-navy hover:bg-navy/90 text-white"
       >
-        {saved ? (
+        {saving ? (
+          <Loader2 size={16} className="animate-spin mr-2" />
+        ) : saved ? (
           <Check size={16} className="mr-2 text-green-300" />
         ) : (
           <Key size={16} className="mr-2" />
@@ -1074,11 +1202,24 @@ function CredentialsAdmin() {
   );
 }
 
-// ─── Main Admin Component ──────────────────────────────────────────────────────
-export function AdminPage() {
-  const [loggedIn, setLoggedIn] = useState(() => {
-    return sessionStorage.getItem("adminLoggedIn") === "true";
-  });
+// ─── Main Admin Component ───────────────────────────────────────────────────────────
+export function AdminPage({
+  navigate,
+  onDataChange,
+}: {
+  navigate?: (p: string) => void;
+  onDataChange?: () => void;
+}) {
+  const [loggedIn, setLoggedIn] = useState(
+    () => sessionStorage.getItem("adminLoggedIn") === "true",
+  );
+  const [admissions, setAdmissions] = useState<Admission[]>([]);
+
+  useEffect(() => {
+    if (loggedIn) {
+      getAdmissions().then(setAdmissions);
+    }
+  }, [loggedIn]);
 
   function handleLogin() {
     sessionStorage.setItem("adminLoggedIn", "true");
@@ -1088,11 +1229,11 @@ export function AdminPage() {
   function handleLogout() {
     sessionStorage.removeItem("adminLoggedIn");
     setLoggedIn(false);
+    if (onDataChange) onDataChange();
+    if (navigate) navigate("/");
   }
 
   if (!loggedIn) return <Login onLogin={handleLogin} />;
-
-  const admissions = storage.getAdmissions();
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

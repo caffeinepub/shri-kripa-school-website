@@ -1,5 +1,5 @@
 import type { SchoolSettings } from "@/utils/storage";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { GraduationCap, Menu, Shield, X } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
@@ -19,6 +19,7 @@ const links = [
 
 export function Navbar({ settings, currentPath, navigate }: Props) {
   const [open, setOpen] = useState(false);
+  const isAdminLoggedIn = sessionStorage.getItem("adminLoggedIn") === "true";
 
   function go(path: string) {
     navigate(path);
@@ -79,6 +80,20 @@ export function Navbar({ settings, currentPath, navigate }: Props) {
             >
               Apply Now
             </button>
+            {/* Admin Link */}
+            <button
+              type="button"
+              data-ocid="nav.admin.link"
+              onClick={() => go("/admin")}
+              title={isAdminLoggedIn ? "Go to Admin Panel" : "Admin Login"}
+              className={`ml-1 p-2 rounded transition-colors ${
+                currentPath === "/admin"
+                  ? "text-gold"
+                  : "text-white/50 hover:text-gold"
+              }`}
+            >
+              <Shield size={16} />
+            </button>
           </nav>
 
           {/* Mobile hamburger */}
@@ -111,6 +126,20 @@ export function Navbar({ settings, currentPath, navigate }: Props) {
               {l.label}
             </button>
           ))}
+          {/* Admin link in mobile menu */}
+          <button
+            type="button"
+            data-ocid="nav.mobile.admin.link"
+            onClick={() => go("/admin")}
+            className={`flex items-center gap-2 w-full text-left px-3 py-3 text-sm font-medium border-b border-white/10 transition-colors ${
+              currentPath === "/admin"
+                ? "text-gold"
+                : "text-white/50 hover:text-gold"
+            }`}
+          >
+            <Shield size={14} />
+            {isAdminLoggedIn ? "Admin Panel" : "Admin Login"}
+          </button>
           <button
             type="button"
             onClick={() => go("/admissions")}

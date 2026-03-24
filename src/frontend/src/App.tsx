@@ -8,7 +8,19 @@ import { EventDetailPage } from "@/pages/EventDetail";
 import { GalleryPage } from "@/pages/GalleryPage";
 import { HomePage } from "@/pages/Home";
 import { TeachersPage } from "@/pages/TeachersPage";
-import { storage } from "@/utils/storage";
+import {
+  getEvents,
+  getGallery,
+  getSettings,
+  getTeachers,
+} from "@/utils/firebaseService";
+import type {
+  GalleryImage,
+  SchoolEvent,
+  SchoolSettings,
+  Teacher,
+} from "@/utils/storage";
+import { DEFAULT_SETTINGS } from "@/utils/storage";
 import { useCallback, useEffect, useState } from "react";
 
 // ─── WhatsApp Floating Button ─────────────────────────────────────────────────
@@ -35,7 +47,7 @@ function WhatsAppButton() {
   );
 }
 
-// ─── Hash Router ──────────────────────────────────────────────────────────────
+// ─── Hash Router ─────────────────────────────────────────────────────────────
 function getPath(): string {
   const hash = window.location.hash.slice(1);
   return hash || "/";
@@ -43,6 +55,11 @@ function getPath(): string {
 
 export default function App() {
   const [path, setPath] = useState(getPath);
+  const [settings, setSettings] = useState<SchoolSettings>(DEFAULT_SETTINGS);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useCallback((to: string) => {
     window.location.hash = to;
@@ -55,13 +72,46 @@ export default function App() {
     return () => window.removeEventListener("hashchange", handler);
   }, []);
 
-  // Load data
-  const settings = storage.getSettings();
-  const teachers = storage.getTeachers();
-  const gallery = storage.getGallery();
-  const events = storage.getEvents();
+  // Load data from Firebase on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [s, t, g, e] = await Promise.all([
+          getSettings(),
+          getTeachers(),
+          getGallery(),
+          getEvents(),
+        ]);
+        setSettings(s);
+        setTeachers(t);
+        setGallery(g);
+        setEvents(e);
+      } catch (err) {
+        console.error("Failed to load data from Firebase", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
-  const isAdmin = path === "/admin";
+  // Refresh data when returning from admin panel
+  const refreshData = useCallback(async () => {
+    try {
+      const [s, t, g, e] = await Promise.all([
+        getSettings(),
+        getTeachers(),
+        getGallery(),
+        getEvents(),
+      ]);
+      setSettings(s);
+      setTeachers(t);
+      setGallery(g);
+      setEvents(e);
+    } catch (err) {
+      console.error("Failed to refresh data", err);
+    }
+  }, []);
 
   // Parse event id from path like /events/abc123
   const eventMatch = path.match(/^\/events\/(.+)$/);
@@ -69,6 +119,19 @@ export default function App() {
   const currentEvent = eventId
     ? events.find((e) => e.id === eventId)
     : undefined;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-navy border-t-gold rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-navy font-semibold">
+            Loading Shri Kripa School...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   function renderPage() {
     if (path === "/")
@@ -86,7 +149,8 @@ export default function App() {
     if (path === "/gallery") return <GalleryPage gallery={gallery} />;
     if (path === "/teachers") return <TeachersPage teachers={teachers} />;
     if (path === "/contact") return <ContactPage settings={settings} />;
-    if (path === "/admin") return <AdminPage />;
+    if (path === "/admin")
+      return <AdminPage navigate={navigate} onDataChange={refreshData} />;
     if (eventId)
       return <EventDetailPage event={currentEvent} navigate={navigate} />;
     return (
@@ -108,12 +172,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isAdmin && (
-        <Navbar settings={settings} currentPath={path} navigate={navigate} />
-      )}
+      <Navbar settings={settings} currentPath={path} navigate={navigate} />
       <div className="flex-1">{renderPage()}</div>
-      {!isAdmin && <Footer settings={settings} navigate={navigate} />}
-      {!isAdmin && <WhatsAppButton />}
+      <Footer settings={settings} navigate={navigate} />
+      <WhatsAppButton />
     </div>
   );
 }

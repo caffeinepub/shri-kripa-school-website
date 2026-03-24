@@ -53,8 +53,8 @@ export interface Admission {
   status: AdmissionStatus;
 }
 
-// ─── Defaults ─────────────────────────────────────────────────────────────────
-const DEFAULT_SETTINGS: SchoolSettings = {
+// ─── Defaults (exported for firebaseService) ──────────────────────────────────
+export const DEFAULT_SETTINGS: SchoolSettings = {
   name: "Shri Kripa Public School",
   tagline: "Nurturing Minds, Building Futures — Excellence Since 2008",
   logo: "",
@@ -84,53 +84,9 @@ const DEFAULT_SETTINGS: SchoolSettings = {
   },
 };
 
-const DEFAULT_CREDENTIALS: AdminCredentials = {
+export const DEFAULT_CREDENTIALS: AdminCredentials = {
   username: "shristi",
   password: "shristi@123",
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function get<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function set<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-// ─── API ──────────────────────────────────────────────────────────────────────
-export const storage = {
-  getCredentials: (): AdminCredentials =>
-    get("adminCredentials", DEFAULT_CREDENTIALS),
-  setCredentials: (c: AdminCredentials) => set("adminCredentials", c),
-
-  getSettings: (): SchoolSettings => {
-    const saved = get<Partial<SchoolSettings>>("schoolSettings", {});
-    return {
-      ...DEFAULT_SETTINGS,
-      ...saved,
-      contact: { ...DEFAULT_SETTINGS.contact, ...(saved.contact ?? {}) },
-    };
-  },
-  setSettings: (s: SchoolSettings) => set("schoolSettings", s),
-
-  getTeachers: (): Teacher[] => get("teachers", []),
-  setTeachers: (t: Teacher[]) => set("teachers", t),
-
-  getGallery: (): GalleryImage[] => get("gallery", []),
-  setGallery: (g: GalleryImage[]) => set("gallery", g),
-
-  getEvents: (): SchoolEvent[] => get("events", []),
-  setEvents: (e: SchoolEvent[]) => set("events", e),
-
-  getAdmissions: (): Admission[] => get("admissions", []),
-  setAdmissions: (a: Admission[]) => set("admissions", a),
 };
 
 export function genId(): string {

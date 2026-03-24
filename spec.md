@@ -1,36 +1,52 @@
 # Shri Kripa School Website
 
 ## Current State
-React + Tailwind CSS SPA in a single large App.tsx. Light green/white theme. Has admin panel, gallery, events, teachers, admissions. Multiple bugs: image upload not working, crop feature missing, default credentials shown on login page, application status not properly organized.
+- All data (admissions, teachers, gallery, events, settings, admin credentials) stored in localStorage via `src/utils/storage.ts`
+- Images stored as base64 strings in localStorage
+- Firebase config exists in `src/firebase.js` exporting `db` (Firestore) and `storage` (Firebase Storage)
+- Firebase package added to package.json (`firebase ^10.12.0`) but not yet installed
+- All storage functions in `storage.ts` are synchronous
+- All pages (AdminPage, Admissions, Home, etc.) call `storage.*` functions synchronously
 
 ## Requested Changes (Diff)
 
 ### Add
-- Deep Navy Blue + Gold + White professional theme throughout
-- Image upload working in all sections (gallery, teachers, events, logo, banner) using FileReader/base64 stored in localStorage
-- Crop/adjust feature before upload (react-image-crop or canvas-based): circle crop for logo, rectangle for others
-- Application status organized: Pending section on top, Contacted (green) section below, Not Attended (yellow) section below that -- each in separate labeled boxes
-- Floating WhatsApp button on all pages
+- `src/utils/firebaseService.ts`: async Firebase service layer wrapping all Firestore + Storage operations
+- npm install firebase (run during build)
 
 ### Modify
-- Theme: Deep navy (#1a2744) navbar/footer, gold (#d4a017) accents/buttons, white backgrounds
-- Admin login page: Remove default credentials hint text
-- Image handling: Use FileReader to convert images to base64 and store in localStorage (no Firebase dependency in dev)
-- Mobile layout: 3 photos per row for gallery/teachers/events on mobile
-- Performance: Synchronous localStorage saves, debounced state updates
-- Contact info in settings: editable address, phone, email
-- Notice board: admin editable
-- Admissions year: admin editable
-- Events: clickable cards on home page showing event images in modal/page
+- `src/utils/storage.ts`: Keep TypeScript types and defaults, but replace localStorage read/write with Firebase calls (async)
+- `src/pages/AdminPage.tsx`: Update all `storage.*` calls to async (await), add loading states
+- `src/pages/Admissions.tsx`: Save admissions to Firestore instead of localStorage
+- `src/pages/Home.tsx`, `src/pages/GalleryPage.tsx`, `src/pages/TeachersPage.tsx`, `src/pages/About.tsx`, `src/pages/EventDetail.tsx`: Load data from Firestore on mount (useEffect + async)
+- `src/App.tsx`: Load settings from Firestore on startup
+- `src/firebase.js`: Already updated with new config
 
 ### Remove
-- Default credentials text from admin login page
+- All `localStorage.getItem` / `localStorage.setItem` calls for school data
 
 ## Implementation Plan
-1. Rewrite App.tsx completely with new Navy+Gold theme
-2. Implement proper image upload using FileReader API (base64 to localStorage)
-3. Add canvas-based crop modal (circle for logo, rectangle for others)
-4. Organize admission applications into 3 separate status sections
-5. Remove default credentials from login page
-6. Ensure mobile-first responsive layout (3 cols mobile, 2 tablet, 4 desktop for grids)
-7. All dynamic content managed from admin settings
+
+1. Run `npm install` in `src/frontend` to install firebase package
+2. Create `firebaseService.ts` with these async functions:
+   - `getSettings() / setSettings()` → Firestore `settings/main` doc
+   - `getCredentials() / setCredentials()` → Firestore `admin/credentials` doc
+   - `getTeachers() / setTeachers()` → Firestore `teachers` collection
+   - `getGallery() / setGallery()` → Firestore `gallery` collection
+   - `getEvents() / setEvents()` → Firestore `events` collection
+   - `getAdmissions() / setAdmissions()` → Firestore `admissions` collection
+   - `updateAdmissionStatus(id, status)` → update single doc
+   - `uploadImage(file, path)` → Firebase Storage upload, return download URL
+3. Update `storage.ts` to re-export types + async functions from firebaseService
+4. Update all pages to use async data loading with useEffect + useState for loading states
+5. In AdminPage: image uploads go to Firebase Storage, not base64 localStorage
+6. Admin credentials stored in Firestore `admin/credentials` doc
+7. Validate and build
+
+### Firestore Collections Structure
+- `settings/main`: { name, tagline, logo, banner, about, classes, noticeBoard, admissionsYear, contact: {address, phone, email} }
+- `admin/credentials`: { username, password }
+- `teachers/{id}`: { name, photo (Storage URL), speciality }
+- `gallery/{id}`: { imageUrl (Storage URL), createdAt }
+- `events/{id}`: { title, images: string[] (Storage URLs) }
+- `admissions/{id}`: { name, fatherName, class, phone, createdAt, status }
