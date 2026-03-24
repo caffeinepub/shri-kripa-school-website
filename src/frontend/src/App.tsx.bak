@@ -259,10 +259,10 @@ const DEFAULT_CALENDAR: CalendarItem[] = [
 
 // ─── Color constants ───────────────────────────────────────────────────────────
 const BLUE = {
-  bg: "#166534",
-  mid: "#15803d",
-  light: "#dcfce7",
-  vlight: "#f0fdf4",
+  bg: "#1a3a6b",
+  mid: "#1e40af",
+  light: "#dbeafe",
+  vlight: "#eff6ff",
 };
 
 // ─── useSettings hook ─────────────────────────────────────────────────────────
@@ -340,7 +340,7 @@ function Header() {
     <header
       className="sticky top-0 z-50 shadow-lg"
       style={{
-        background: `linear-gradient(135deg, ${BLUE.bg} 0%, #14532d 100%)`,
+        background: `linear-gradient(135deg, ${BLUE.bg} 0%, #0f2347 100%)`,
       }}
     >
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
@@ -383,7 +383,7 @@ function Header() {
           <Link to="/admin/login">
             <Button
               size="sm"
-              className="ml-2 bg-white text-green-800 hover:bg-green-50 font-semibold shadow"
+              className="ml-2 bg-white text-blue-800 hover:bg-blue-50 font-semibold shadow"
               data-ocid="admin.link"
             >
               <Shield className="h-3 w-3 mr-1" />
@@ -408,7 +408,7 @@ function Header() {
             exit={{ height: 0, opacity: 0 }}
             className="md:hidden border-t border-white/20 overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${BLUE.bg} 0%, #14532d 100%)`,
+              background: `linear-gradient(135deg, ${BLUE.bg} 0%, #0f2347 100%)`,
             }}
           >
             <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
@@ -430,7 +430,7 @@ function Header() {
               <Link to="/admin/login" onClick={() => setOpen(false)}>
                 <Button
                   size="sm"
-                  className="mt-1 bg-white text-green-800 hover:bg-green-50 w-full font-semibold"
+                  className="mt-1 bg-white text-blue-800 hover:bg-blue-50 w-full font-semibold"
                 >
                   Admin Panel
                 </Button>
@@ -450,7 +450,7 @@ function Footer() {
     <footer
       className="text-white/80 mt-auto"
       style={{
-        background: "linear-gradient(135deg, #14532d 0%, #0a1628 100%)",
+        background: "linear-gradient(135deg, #0f2347 0%, #0a1628 100%)",
       }}
     >
       <div className="container mx-auto px-4 py-10 grid md:grid-cols-3 gap-8">
@@ -469,7 +469,7 @@ function Footer() {
             <button
               type="button"
               aria-label="Facebook"
-              className="h-9 w-9 rounded-full bg-white/10 hover:bg-green-600 flex items-center justify-center transition-colors"
+              className="h-9 w-9 rounded-full bg-white/10 hover:bg-blue-600 flex items-center justify-center transition-colors"
             >
               <Facebook className="h-4 w-4 text-white" />
             </button>
@@ -505,15 +505,15 @@ function Footer() {
           <h4 className="font-semibold text-white mb-3">Contact</h4>
           <ul className="space-y-2 text-sm">
             <li className="flex gap-2">
-              <MapPin className="h-4 w-4 text-green-300 shrink-0 mt-0.5" /> Ward
+              <MapPin className="h-4 w-4 text-blue-300 shrink-0 mt-0.5" /> Ward
               55, Near TP Nagar, Manpur West, Haldwani, Nainital, Uttarakhand
             </li>
             <li className="flex gap-2">
-              <Phone className="h-4 w-4 text-green-300 shrink-0" /> +91 84495
+              <Phone className="h-4 w-4 text-blue-300 shrink-0" /> +91 84495
               61111
             </li>
             <li className="flex gap-2">
-              <Mail className="h-4 w-4 text-green-300 shrink-0" />{" "}
+              <Mail className="h-4 w-4 text-blue-300 shrink-0" />{" "}
               info@shrikripa.edu.in
             </li>
           </ul>
@@ -554,7 +554,7 @@ function PageHero({ title, subtitle }: { title: string; subtitle?: string }) {
     <section
       className="text-white py-14 px-4"
       style={{
-        background: `linear-gradient(135deg, ${BLUE.bg} 0%, #15803d 100%)`,
+        background: `linear-gradient(135deg, ${BLUE.bg} 0%, #1e40af 100%)`,
       }}
     >
       <div className="container mx-auto">
@@ -618,7 +618,7 @@ function HomePage() {
                 <Link to="/admissions">
                   <Button
                     size="lg"
-                    className="bg-white text-green-800 hover:bg-green-50 font-bold shadow-xl border-2 border-white"
+                    className="bg-white text-blue-800 hover:bg-blue-50 font-bold shadow-xl border-2 border-white"
                     data-ocid="home.primary_button"
                   >
                     Apply for Admission{" "}
@@ -628,7 +628,7 @@ function HomePage() {
                 <Link to="/about">
                   <Button
                     size="lg"
-                    className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-800 font-bold shadow-lg transition-colors"
+                    className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-800 font-bold shadow-lg transition-colors"
                     data-ocid="home.secondary_button"
                   >
                     Learn More
@@ -644,7 +644,7 @@ function HomePage() {
       <section
         className="py-8 px-4"
         style={{
-          background: `linear-gradient(90deg, ${BLUE.bg} 0%, #15803d 100%)`,
+          background: `linear-gradient(90deg, ${BLUE.bg} 0%, #1e40af 100%)`,
         }}
       >
         <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
@@ -792,7 +792,7 @@ function HomePage() {
       <section
         className="py-14 px-4 text-center text-white"
         style={{
-          background: `linear-gradient(135deg, ${BLUE.bg} 0%, #15803d 100%)`,
+          background: `linear-gradient(135deg, ${BLUE.bg} 0%, #1e40af 100%)`,
         }}
       >
         <h2 className="font-display text-3xl font-bold mb-3">
@@ -805,7 +805,7 @@ function HomePage() {
           <Link to="/admissions">
             <Button
               size="lg"
-              className="bg-white text-green-800 hover:bg-green-50 font-bold shadow-xl border-2 border-white"
+              className="bg-white text-blue-800 hover:bg-blue-50 font-bold shadow-xl border-2 border-white"
               data-ocid="home.primary_button"
             >
               Enquire Now
@@ -814,7 +814,7 @@ function HomePage() {
           <Link to="/contact">
             <Button
               size="lg"
-              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-800 font-bold transition-colors"
+              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-800 font-bold transition-colors"
             >
               Contact Us
             </Button>
@@ -951,7 +951,7 @@ function AboutPage() {
                   <div
                     className="h-24 w-24 rounded-full shrink-0 flex items-center justify-center text-white text-3xl font-bold shadow-md"
                     style={{
-                      background: `linear-gradient(135deg, ${BLUE.bg}, #15803d)`,
+                      background: `linear-gradient(135deg, ${BLUE.bg}, #1e40af)`,
                     }}
                   >
                     {principal.imageUrl ? (
@@ -1620,7 +1620,7 @@ function TeachersPage() {
                       <div
                         className="h-20 w-20 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-white"
                         style={{
-                          background: `linear-gradient(135deg, ${BLUE.bg}, #15803d)`,
+                          background: `linear-gradient(135deg, ${BLUE.bg}, #1e40af)`,
                         }}
                       >
                         {t.name[0]}
@@ -1866,7 +1866,7 @@ function AdminLoginPage() {
             <div
               className="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-3 shadow"
               style={{
-                background: `linear-gradient(135deg, ${BLUE.bg}, #15803d)`,
+                background: `linear-gradient(135deg, ${BLUE.bg}, #1e40af)`,
               }}
             >
               <Shield className="h-7 w-7 text-white" />
@@ -1958,7 +1958,7 @@ function AdminDashboard() {
       <div className="min-h-screen" style={{ background: BLUE.vlight }}>
         <div
           className="text-white py-4 px-4"
-          style={{ background: `linear-gradient(135deg, ${BLUE.bg}, #15803d)` }}
+          style={{ background: `linear-gradient(135deg, ${BLUE.bg}, #1e40af)` }}
         >
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -1984,6 +1984,12 @@ function AdminDashboard() {
                 { value: "settings", label: "Settings" },
                 { value: "teachers", label: "Teachers" },
                 { value: "gallery", label: "Gallery" },
+                { value: "notices", label: "Notices" },
+                { value: "principal", label: "Principal" },
+                { value: "achievements", label: "Achievements" },
+                { value: "testimonials", label: "Testimonials" },
+                { value: "fees", label: "Fee Structure" },
+                { value: "calendar", label: "Calendar" },
                 { value: "admissions", label: "Admissions" },
                 { value: "credentials", label: "Credentials" },
               ].map((t) => (
@@ -2006,6 +2012,24 @@ function AdminDashboard() {
               </TabsContent>
               <TabsContent value="gallery">
                 <AdminGallery />
+              </TabsContent>
+              <TabsContent value="notices">
+                <AdminNotices />
+              </TabsContent>
+              <TabsContent value="principal">
+                <AdminPrincipal />
+              </TabsContent>
+              <TabsContent value="achievements">
+                <AdminAchievements />
+              </TabsContent>
+              <TabsContent value="testimonials">
+                <AdminTestimonials />
+              </TabsContent>
+              <TabsContent value="fees">
+                <AdminFees />
+              </TabsContent>
+              <TabsContent value="calendar">
+                <AdminCalendar />
               </TabsContent>
               <TabsContent value="admissions">
                 <AdminAdmissions />
@@ -2477,6 +2501,534 @@ function AdminGallery() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── AdminNotices ──────────────────────────────────────────────────────────────
+function AdminNotices() {
+  const [notices, setNotices] = useState<Notice[]>(() =>
+    lsGet<Notice[]>(LS.NOTICES, DEFAULT_NOTICES),
+  );
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+
+  function addNotice() {
+    if (!title.trim()) {
+      toast.error("Enter notice title.");
+      return;
+    }
+    const n: Notice = { id: Date.now().toString(), title: title.trim(), date };
+    const updated = [n, ...notices];
+    setNotices(updated);
+    lsSet(LS.NOTICES, updated);
+    setTitle("");
+    setDate("");
+    toast.success("Notice added!");
+  }
+  function deleteNotice(id: string) {
+    const updated = notices.filter((n) => n.id !== id);
+    setNotices(updated);
+    lsSet(LS.NOTICES, updated);
+    toast.success("Notice deleted.");
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold" style={{ color: BLUE.bg }}>
+        Manage Notice Board
+      </h2>
+      <Card style={{ border: "1px solid #bfdbfe" }}>
+        <CardContent className="pt-6 space-y-3">
+          <Input
+            placeholder="Notice title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            data-ocid="admin.input"
+          />
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            data-ocid="admin.input"
+          />
+          <Button
+            onClick={addNotice}
+            className="text-white"
+            style={{ background: BLUE.bg }}
+            data-ocid="admin.primary_button"
+          >
+            Add Notice
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="space-y-2">
+        {notices.map((n, i) => (
+          <div
+            key={n.id}
+            className="flex items-center justify-between bg-white rounded-lg p-3 border"
+            style={{ borderColor: "#bfdbfe" }}
+            data-ocid={`admin.item.${i + 1}`}
+          >
+            <div>
+              <p className="font-medium">{n.title}</p>
+              <p className="text-xs" style={{ color: BLUE.mid }}>
+                {n.date}
+              </p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => deleteNotice(n.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── AdminPrincipal ────────────────────────────────────────────────────────────
+function AdminPrincipal() {
+  const [data, setData] = useState<Principal>(() =>
+    lsGet<Principal>(LS.PRINCIPAL, DEFAULT_PRINCIPAL),
+  );
+  const [saving, setSaving] = useState(false);
+
+  function save() {
+    setSaving(true);
+    lsSet(LS.PRINCIPAL, data);
+    setTimeout(() => {
+      setSaving(false);
+      toast.success("Principal info saved!");
+    }, 500);
+  }
+
+  return (
+    <div className="space-y-6 max-w-lg">
+      <h2 className="font-display text-xl font-bold" style={{ color: BLUE.bg }}>
+        Principal's Message
+      </h2>
+      <Card style={{ border: "1px solid #bfdbfe" }}>
+        <CardContent className="pt-6 space-y-4">
+          <div>
+            <Label>Name</Label>
+            <Input
+              value={data.name}
+              onChange={(e) => setData((p) => ({ ...p, name: e.target.value }))}
+              data-ocid="admin.input"
+            />
+          </div>
+          <div>
+            <Label>Designation</Label>
+            <Input
+              value={data.designation}
+              onChange={(e) =>
+                setData((p) => ({ ...p, designation: e.target.value }))
+              }
+              data-ocid="admin.input"
+            />
+          </div>
+          <div>
+            <Label>Message</Label>
+            <Textarea
+              rows={5}
+              value={data.message}
+              onChange={(e) =>
+                setData((p) => ({ ...p, message: e.target.value }))
+              }
+              data-ocid="admin.textarea"
+            />
+          </div>
+          <Button
+            onClick={save}
+            className="text-white"
+            style={{ background: BLUE.bg }}
+            disabled={saving}
+            data-ocid="admin.save_button"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Save
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─── AdminAchievements ─────────────────────────────────────────────────────────
+function AdminAchievements() {
+  const [list, setList] = useState<Achievement[]>(() =>
+    lsGet<Achievement[]>(LS.ACHIEVEMENTS, DEFAULT_ACHIEVEMENTS),
+  );
+  const [title, setTitle] = useState("");
+  const [year, setYear] = useState("");
+
+  function add() {
+    if (!title.trim()) {
+      toast.error("Enter title.");
+      return;
+    }
+    const a: Achievement = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      year,
+    };
+    const updated = [...list, a];
+    setList(updated);
+    lsSet(LS.ACHIEVEMENTS, updated);
+    setTitle("");
+    setYear("");
+    toast.success("Achievement added!");
+  }
+  function remove(id: string) {
+    const updated = list.filter((a) => a.id !== id);
+    setList(updated);
+    lsSet(LS.ACHIEVEMENTS, updated);
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold" style={{ color: BLUE.bg }}>
+        Manage Achievements
+      </h2>
+      <Card style={{ border: "1px solid #bfdbfe" }}>
+        <CardContent className="pt-6 space-y-3">
+          <Input
+            placeholder="Achievement title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            data-ocid="admin.input"
+          />
+          <Input
+            placeholder="Year (e.g. 2023)"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            data-ocid="admin.input"
+          />
+          <Button
+            onClick={add}
+            className="text-white"
+            style={{ background: BLUE.bg }}
+          >
+            Add Achievement
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {list.map((a, i) => (
+          <div
+            key={a.id}
+            className="flex items-center justify-between bg-white rounded-lg p-3 border"
+            style={{ borderColor: "#bfdbfe" }}
+            data-ocid={`admin.item.${i + 1}`}
+          >
+            <div>
+              <p className="font-medium">{a.title}</p>
+              <p className="text-xs" style={{ color: BLUE.mid }}>
+                {a.year}
+              </p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => remove(a.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── AdminTestimonials ─────────────────────────────────────────────────────────
+function AdminTestimonials() {
+  const [list, setList] = useState<Testimonial[]>(() =>
+    lsGet<Testimonial[]>(LS.TESTIMONIALS, DEFAULT_TESTIMONIALS),
+  );
+  const [form, setForm] = useState({
+    parentName: "",
+    childClass: "",
+    review: "",
+  });
+
+  function add() {
+    if (!form.parentName.trim() || !form.review.trim()) {
+      toast.error("Fill all fields.");
+      return;
+    }
+    const t: Testimonial = { id: Date.now().toString(), ...form };
+    const updated = [...list, t];
+    setList(updated);
+    lsSet(LS.TESTIMONIALS, updated);
+    setForm({ parentName: "", childClass: "", review: "" });
+    toast.success("Testimonial added!");
+  }
+  function remove(id: string) {
+    const updated = list.filter((t) => t.id !== id);
+    setList(updated);
+    lsSet(LS.TESTIMONIALS, updated);
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold" style={{ color: BLUE.bg }}>
+        Manage Testimonials
+      </h2>
+      <Card style={{ border: "1px solid #bfdbfe" }}>
+        <CardContent className="pt-6 space-y-3">
+          <Input
+            placeholder="Parent Name"
+            value={form.parentName}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, parentName: e.target.value }))
+            }
+            data-ocid="admin.input"
+          />
+          <Input
+            placeholder="Child's Class (e.g. Class 5)"
+            value={form.childClass}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, childClass: e.target.value }))
+            }
+            data-ocid="admin.input"
+          />
+          <Textarea
+            placeholder="Review..."
+            rows={3}
+            value={form.review}
+            onChange={(e) => setForm((p) => ({ ...p, review: e.target.value }))}
+            data-ocid="admin.textarea"
+          />
+          <Button
+            onClick={add}
+            className="text-white"
+            style={{ background: BLUE.bg }}
+          >
+            Add Testimonial
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="space-y-3">
+        {list.map((t, i) => (
+          <div
+            key={t.id}
+            className="flex items-start justify-between bg-white rounded-lg p-4 border"
+            style={{ borderColor: "#bfdbfe" }}
+            data-ocid={`admin.item.${i + 1}`}
+          >
+            <div className="flex-1 mr-3">
+              <p className="text-sm italic text-gray-600">
+                &ldquo;{t.review}&rdquo;
+              </p>
+              <p className="font-medium mt-2">
+                {t.parentName} — {t.childClass}
+              </p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-destructive shrink-0"
+              onClick={() => remove(t.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── AdminFees ─────────────────────────────────────────────────────────────────
+function AdminFees() {
+  const [list, setList] = useState<FeeItem[]>(() =>
+    lsGet<FeeItem[]>(LS.FEES, DEFAULT_FEES),
+  );
+  const [form, setForm] = useState({ className: "", annualFee: "" });
+
+  function add() {
+    if (!form.className.trim() || !form.annualFee.trim()) {
+      toast.error("Fill all fields.");
+      return;
+    }
+    const f: FeeItem = { id: Date.now().toString(), ...form };
+    const updated = [...list, f];
+    setList(updated);
+    lsSet(LS.FEES, updated);
+    setForm({ className: "", annualFee: "" });
+    toast.success("Fee added!");
+  }
+  function remove(id: string) {
+    const updated = list.filter((f) => f.id !== id);
+    setList(updated);
+    lsSet(LS.FEES, updated);
+  }
+  function update(id: string, field: keyof FeeItem, val: string) {
+    const updated = list.map((f) => (f.id === id ? { ...f, [field]: val } : f));
+    setList(updated);
+    lsSet(LS.FEES, updated);
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold" style={{ color: BLUE.bg }}>
+        Manage Fee Structure
+      </h2>
+      <Card style={{ border: "1px solid #bfdbfe" }}>
+        <CardContent className="pt-6 space-y-3">
+          <Input
+            placeholder="Class (e.g. Nursery–UKG)"
+            value={form.className}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, className: e.target.value }))
+            }
+            data-ocid="admin.input"
+          />
+          <Input
+            placeholder="Annual Fee (e.g. ₹10,000)"
+            value={form.annualFee}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, annualFee: e.target.value }))
+            }
+            data-ocid="admin.input"
+          />
+          <Button
+            onClick={add}
+            className="text-white"
+            style={{ background: BLUE.bg }}
+          >
+            Add
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="space-y-2">
+        {list.map((f, i) => (
+          <div
+            key={f.id}
+            className="flex items-center gap-3 bg-white rounded-lg p-3 border"
+            style={{ borderColor: "#bfdbfe" }}
+            data-ocid={`admin.item.${i + 1}`}
+          >
+            <Input
+              value={f.className}
+              onChange={(e) => update(f.id, "className", e.target.value)}
+              className="flex-1"
+            />
+            <Input
+              value={f.annualFee}
+              onChange={(e) => update(f.id, "annualFee", e.target.value)}
+              className="w-32"
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => remove(f.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+      {list.length > 0 && (
+        <Button
+          onClick={() => lsSet(LS.FEES, list)}
+          className="text-white"
+          style={{ background: BLUE.bg }}
+          data-ocid="admin.save_button"
+        >
+          Save Changes
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// ─── AdminCalendar ─────────────────────────────────────────────────────────────
+function AdminCalendar() {
+  const [list, setList] = useState<CalendarItem[]>(() =>
+    lsGet<CalendarItem[]>(LS.CALENDAR, DEFAULT_CALENDAR),
+  );
+  const [form, setForm] = useState({ event: "", date: "" });
+
+  function add() {
+    if (!form.event.trim()) {
+      toast.error("Enter event name.");
+      return;
+    }
+    const c: CalendarItem = { id: Date.now().toString(), ...form };
+    const updated = [...list, c];
+    setList(updated);
+    lsSet(LS.CALENDAR, updated);
+    setForm({ event: "", date: "" });
+    toast.success("Event added!");
+  }
+  function remove(id: string) {
+    const updated = list.filter((c) => c.id !== id);
+    setList(updated);
+    lsSet(LS.CALENDAR, updated);
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-xl font-bold" style={{ color: BLUE.bg }}>
+        Manage Academic Calendar
+      </h2>
+      <Card style={{ border: "1px solid #bfdbfe" }}>
+        <CardContent className="pt-6 space-y-3">
+          <Input
+            placeholder="Event name"
+            value={form.event}
+            onChange={(e) => setForm((p) => ({ ...p, event: e.target.value }))}
+            data-ocid="admin.input"
+          />
+          <Input
+            placeholder="Date (e.g. April 1, 2025)"
+            value={form.date}
+            onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+            data-ocid="admin.input"
+          />
+          <Button
+            onClick={add}
+            className="text-white"
+            style={{ background: BLUE.bg }}
+          >
+            Add Event
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="space-y-2">
+        {list.map((c, i) => (
+          <div
+            key={c.id}
+            className="flex items-center justify-between bg-white rounded-lg p-3 border"
+            style={{ borderColor: "#bfdbfe" }}
+            data-ocid={`admin.item.${i + 1}`}
+          >
+            <div>
+              <p className="font-medium">{c.event}</p>
+              <p className="text-xs" style={{ color: BLUE.mid }}>
+                {c.date}
+              </p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => remove(c.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
