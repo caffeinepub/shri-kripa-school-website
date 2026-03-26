@@ -1,4 +1,4 @@
-import { db, storage as firebaseStorage } from "@/firebase";
+import { db } from "@/firebase";
 import {
   collection,
   deleteDoc,
@@ -6,14 +6,7 @@ import {
   getDoc,
   getDocs,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
-import {
-  getDownloadURL,
-  ref,
-  uploadBytes,
-  uploadString,
-} from "firebase/storage";
 import type {
   AdminCredentials,
   Admission,
@@ -25,26 +18,44 @@ import type {
 } from "./storage";
 import { DEFAULT_CREDENTIALS, DEFAULT_SETTINGS, genId } from "./storage";
 
-// ─── Image Upload ────────────────────────────────────────────────────────────
-// Upload a base64 data URL or a File to Firebase Storage, return download URL
+// ─── Image Upload (base64 compress, no Storage needed) ────────────────────────
 export async function uploadImage(
   imageData: string | File,
-  path: string,
+  _path: string,
 ): Promise<string> {
-  const storageRef = ref(firebaseStorage, path);
-  if (typeof imageData === "string" && imageData.startsWith("data:")) {
-    // base64 data URL
-    const [header, data] = imageData.split(",");
-    const mimeMatch = header.match(/data:([^;]+)/);
-    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-    await uploadString(storageRef, data, "base64", { contentType: mimeType });
-  } else if (imageData instanceof File) {
-    await uploadBytes(storageRef, imageData);
-  } else {
-    // already a URL, return as-is
-    return imageData as string;
-  }
-  return getDownloadURL(storageRef);
+  return new Promise((resolve) => {
+    const processBase64 = (base64: string) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX = 600;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX) {
+          h = Math.round((h * MAX) / w);
+          w = MAX;
+        }
+        if (h > MAX) {
+          w = Math.round((w * MAX) / h);
+          h = MAX;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.6));
+      };
+      img.onerror = () => resolve(base64);
+      img.src = base64;
+    };
+
+    if (imageData instanceof File) {
+      const reader = new FileReader();
+      reader.onload = (e) => processBase64(e.target?.result as string);
+      reader.readAsDataURL(imageData);
+    } else {
+      processBase64(imageData);
+    }
+  });
 }
 
 // ─── Settings ──────────────────────────────────────────────────────────────────
@@ -66,15 +77,13 @@ export async function getSettings(): Promise<SchoolSettings> {
 }
 
 export async function saveSettings(settings: SchoolSettings): Promise<void> {
-  // Upload logo if base64
   let logo = settings.logo;
   if (logo?.startsWith("data:")) {
-    logo = await uploadImage(logo, `school/logo_${Date.now()}`);
+    logo = await uploadImage(logo, "logo");
   }
-  // Upload banner if base64
   let banner = settings.banner;
   if (banner?.startsWith("data:")) {
-    banner = await uploadImage(banner, `school/banner_${Date.now()}`);
+    banner = await uploadImage(banner, "banner");
   }
   await setDoc(doc(db, "settings", "main"), { ...settings, logo, banner });
 }
@@ -106,15 +115,12 @@ export async function getTeachers(): Promise<Teacher[]> {
 }
 
 export async function saveTeacher(teacher: Teacher): Promise<void> {
+  const id = String(teacher.id || genId()).trim();
   let photo = teacher.photo;
   if (photo?.startsWith("data:")) {
-    photo = await uploadImage(photo, `teachers/${teacher.id}_${Date.now()}`);
+    photo = await uploadImage(photo, `teachers/${id}`);
   }
-  await setDoc(doc(db, "teachers", teacher.id), {
-    ...teacher,
-    id: teacher.id,
-    photo,
-  });
+  await setDoc(doc(db, "teachers", id), { ...teacher, id, photo });
 }
 
 export async function deleteTeacher(id: string): Promise<void> {
@@ -125,7 +131,15 @@ export async function deleteTeacher(id: string): Promise<void> {
 export async function getGallery(): Promise<GalleryImage[]> {
   try {
     const snap = await getDocs(collection(db, "gallery"));
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as GalleryImage);
+    return snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        // normalize field name -- support both imageUrl and url
+        imageUrl: data.imageUrl || data.url || data.image || data.src || "",
+      } as GalleryImage;
+    });
   } catch (e) {
     console.error("getGallery error", e);
     return [];
@@ -136,7 +150,7 @@ export async function addGalleryImage(
   imageData: string,
   id: string,
 ): Promise<GalleryImage> {
-  const imageUrl = await uploadImage(imageData, `gallery/${id}_${Date.now()}`);
+  const imageUrl = await uploadImage(imageData, `gallery/${id}`);
   const img: GalleryImage = {
     id,
     imageUrl,
@@ -162,11 +176,10 @@ export async function getEvents(): Promise<SchoolEvent[]> {
 }
 
 export async function saveEvent(event: SchoolEvent): Promise<SchoolEvent> {
-  // Upload any base64 images
   const uploadedImages = await Promise.all(
     event.images.map(async (img, i) => {
       if (img.startsWith("data:")) {
-        return uploadImage(img, `events/${event.id}_img${i}_${Date.now()}`);
+        return uploadImage(img, `events/${event.id}_img${i}`);
       }
       return img;
     }),
@@ -199,7 +212,7 @@ export async function updateAdmissionStatus(
   id: string,
   status: AdmissionStatus,
 ): Promise<void> {
-  await updateDoc(doc(db, "admissions", id), { status });
+  await setDoc(doc(db, "admissions", id), { status }, { merge: true });
 }
 
 export { genId };
