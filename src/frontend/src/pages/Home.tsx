@@ -1,5 +1,6 @@
 import type {
   GalleryImage,
+  LeadershipMember,
   SchoolEvent,
   SchoolSettings,
   Teacher,
@@ -11,6 +12,7 @@ interface Props {
   teachers: Teacher[];
   gallery: GalleryImage[];
   events: SchoolEvent[];
+  leadership: LeadershipMember[];
   navigate: (p: string) => void;
 }
 
@@ -19,6 +21,7 @@ export function HomePage({
   teachers,
   gallery,
   events,
+  leadership,
   navigate,
 }: Props) {
   const previewGallery = gallery.slice(0, 6);
@@ -157,26 +160,78 @@ export function HomePage({
         </section>
       )}
 
+      {/* ── Leadership Section ── */}
+      {leadership.length > 0 && (
+        <section className="bg-navy py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <span className="text-gold font-semibold uppercase text-xs tracking-wider">
+                Our Leadership
+              </span>
+              <h2 className="text-3xl font-display font-bold text-white mt-2">
+                School Management
+              </h2>
+            </div>
+            <div className="flex flex-wrap justify-center gap-6">
+              {leadership.map((member, i) => (
+                <div
+                  key={member.id}
+                  data-ocid={`leadership.item.${i + 1}`}
+                  className="bg-white rounded-2xl p-6 text-center shadow-lg w-full sm:w-64 flex-shrink-0"
+                >
+                  {member.photo ? (
+                    <img
+                      src={member.photo}
+                      alt={member.name}
+                      className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-gold shadow-md"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-navy/10 flex items-center justify-center mx-auto mb-4 border-4 border-gold">
+                      <span className="text-4xl font-bold text-navy">
+                        {member.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <p className="font-bold text-navy text-lg">{member.name}</p>
+                  <p className="text-gold font-semibold text-sm mt-1 uppercase tracking-wide">
+                    {member.post}
+                  </p>
+                  {member.contact && (
+                    <a
+                      href={`tel:${member.contact.replace(/\s/g, "")}`}
+                      className="inline-flex items-center gap-1.5 mt-3 text-sm text-gray-600 hover:text-navy transition-colors"
+                    >
+                      <Phone size={13} />
+                      {member.contact}
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Events ── */}
       {events.length > 0 && (
-        <section className="bg-navy py-16">
+        <section className="bg-amber-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
               <span className="text-gold font-semibold uppercase text-xs tracking-wider">
                 School Events
               </span>
-              <h2 className="text-3xl font-display font-bold text-white mt-2">
+              <h2 className="text-3xl font-display font-bold text-navy mt-2">
                 Recent Events
               </h2>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {events.map((ev) => (
                 <button
                   type="button"
                   key={ev.id}
                   data-ocid="events.item.1"
                   onClick={() => navigate(`/events/${ev.id}`)}
-                  className="group relative overflow-hidden rounded-xl aspect-square bg-white/10 hover:bg-white/20 transition-all duration-300 hover:scale-105"
+                  className="group relative overflow-hidden rounded-xl aspect-square bg-white hover:bg-white transition-all duration-300 hover:scale-105 shadow-sm border border-amber-100"
                 >
                   {ev.images[0] ? (
                     <img
@@ -228,7 +283,7 @@ export function HomePage({
               View All <ChevronRight size={14} />
             </button>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {previewGallery.map((img, i) => (
               <button
                 type="button"
@@ -261,7 +316,7 @@ export function HomePage({
                 Meet Our Teachers
               </h2>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {teachers.slice(0, 8).map((t) => (
                 <div
                   key={t.id}

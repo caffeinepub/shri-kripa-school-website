@@ -8,16 +8,19 @@ import {
   addGalleryImage,
   deleteEvent,
   deleteGalleryImage,
+  deleteLeadershipMember,
   deleteTeacher,
   genId,
   getAdmissions,
   getCredentials,
   getEvents,
   getGallery,
+  getLeadership,
   getSettings,
   getTeachers,
   saveCredentials,
   saveEvent,
+  saveLeadershipMember,
   saveSettings,
   saveTeacher,
   updateAdmissionStatus,
@@ -27,6 +30,7 @@ import type {
   Admission,
   AdmissionStatus,
   GalleryImage,
+  LeadershipMember,
   SchoolEvent,
   SchoolSettings,
   Teacher,
@@ -36,6 +40,7 @@ import {
   AlertTriangle,
   Calendar,
   Check,
+  Crown,
   Edit2,
   GraduationCap,
   Image,
@@ -521,6 +526,262 @@ function TeachersAdmin() {
                   type="button"
                   data-ocid={`teachers.delete_button.${i + 1}`}
                   onClick={() => del(t.id)}
+                  className="p-1.5 rounded hover:bg-red-50 text-red-500"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showCrop && (
+        <ImageCropModal
+          shape="circle"
+          onConfirm={(dataUrl) => {
+            setForm((f) => ({ ...f, photo: dataUrl }));
+            setShowCrop(false);
+          }}
+          onCancel={() => setShowCrop(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Leadership Admin ──────────────────────────────────────────────────────────────
+function LeadershipAdmin() {
+  const [members, setMembers] = useState<LeadershipMember[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [form, setForm] = useState({
+    name: "",
+    post: "",
+    contact: "",
+    photo: "",
+    order: "0",
+  });
+  const [editId, setEditId] = useState<string | null>(null);
+  const [showCrop, setShowCrop] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getLeadership().then((data) => {
+      setMembers(data);
+      setLoadingData(false);
+    });
+  }, []);
+
+  async function save() {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    try {
+      const id = editId ?? genId();
+      const member: LeadershipMember = {
+        id,
+        name: form.name.trim(),
+        post: form.post.trim(),
+        contact: form.contact.trim(),
+        photo: form.photo,
+        order: Number.parseInt(form.order) || 0,
+      };
+      await saveLeadershipMember(member);
+      if (editId) {
+        setMembers((prev) => prev.map((m) => (m.id === editId ? member : m)));
+      } else {
+        setMembers((prev) =>
+          [...prev, member].sort((a, b) => a.order - b.order),
+        );
+      }
+      setForm({ name: "", post: "", contact: "", photo: "", order: "0" });
+      setEditId(null);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function del(id: string) {
+    await deleteLeadershipMember(id);
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+  }
+
+  function startEdit(m: LeadershipMember) {
+    setEditId(m.id);
+    setForm({
+      name: m.name,
+      post: m.post,
+      contact: m.contact,
+      photo: m.photo,
+      order: String(m.order ?? 0),
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl p-6 border border-amber-100 shadow-sm">
+        <h3 className="font-bold text-navy mb-2">
+          {editId ? "Edit Member" : "Add Leadership Member"}
+        </h3>
+        <p className="text-gray-500 text-sm mb-4">
+          Director, Principal jaise bade posts ke logon ko yahan add karein. Yeh
+          Home page par dikhenge.
+        </p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-navy font-medium">Name</Label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="e.g. Dr. Ramesh Kumar"
+              className="mt-1 border-amber-200"
+            />
+          </div>
+          <div>
+            <Label className="text-navy font-medium">Post / Designation</Label>
+            <Input
+              value={form.post}
+              onChange={(e) => setForm((f) => ({ ...f, post: e.target.value }))}
+              placeholder="e.g. Director / Principal"
+              className="mt-1 border-amber-200"
+            />
+          </div>
+          <div>
+            <Label className="text-navy font-medium">Contact Number</Label>
+            <Input
+              value={form.contact}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, contact: e.target.value }))
+              }
+              placeholder="e.g. +91 98765 43210"
+              className="mt-1 border-amber-200"
+            />
+          </div>
+          <div>
+            <Label className="text-navy font-medium">
+              Display Order (1 = pehle dikhega)
+            </Label>
+            <Input
+              type="number"
+              value={form.order}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, order: e.target.value }))
+              }
+              placeholder="1"
+              className="mt-1 border-amber-200"
+            />
+          </div>
+        </div>
+        <div className="mt-4">
+          <Label className="text-navy font-medium">Photo</Label>
+          <div className="mt-1 flex items-center gap-3">
+            {form.photo ? (
+              <img
+                src={form.photo}
+                alt="preview"
+                className="w-20 h-20 rounded-full object-cover border-4 border-gold"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gray-100 border-4 border-dashed border-amber-200 flex items-center justify-center">
+                <Crown size={24} className="text-gray-300" />
+              </div>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCrop(true)}
+              className="text-sm border-amber-200 text-navy"
+            >
+              {form.photo ? "Change Photo" : "Upload Photo"}
+            </Button>
+            {form.photo && (
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, photo: "" }))}
+                className="text-red-400 hover:text-red-600"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-3 mt-4">
+          <Button
+            onClick={save}
+            disabled={saving || !form.name.trim()}
+            className="bg-navy hover:bg-navy/90 text-white"
+          >
+            {saving ? (
+              <Loader2 size={14} className="animate-spin mr-1" />
+            ) : null}
+            {editId ? "Save Changes" : "Add Member"}
+          </Button>
+          {editId && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditId(null);
+                setForm({
+                  name: "",
+                  post: "",
+                  contact: "",
+                  photo: "",
+                  order: "0",
+                });
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {loadingData ? (
+        <div className="flex justify-center py-8">
+          <Loader2 size={24} className="animate-spin text-navy" />
+        </div>
+      ) : members.length === 0 ? (
+        <div className="text-center py-8 text-gray-400">
+          <Crown size={40} className="mx-auto mb-2 opacity-30" />
+          <p>Koi leadership member add nahi kiya gaya.</p>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-4">
+          {members.map((m) => (
+            <div
+              key={m.id}
+              className="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex items-center gap-4"
+            >
+              {m.photo ? (
+                <img
+                  src={m.photo}
+                  alt={m.name}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gold flex-shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center border-2 border-amber-200 flex-shrink-0">
+                  <span className="text-xl font-bold text-navy">
+                    {m.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-navy truncate">{m.name}</p>
+                <p className="text-gold text-sm font-medium">{m.post}</p>
+                {m.contact && (
+                  <p className="text-gray-500 text-xs">{m.contact}</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => startEdit(m)}
+                  className="p-1.5 rounded hover:bg-amber-50 text-navy"
+                >
+                  <Edit2 size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => del(m.id)}
                   className="p-1.5 rounded hover:bg-red-50 text-red-500"
                 >
                   <Trash2 size={14} />
@@ -1266,6 +1527,7 @@ export function AdminPage({
               icon: GraduationCap,
               label: "Applications",
             },
+            { value: "leadership", icon: Crown, label: "Leadership" },
             { value: "teachers", icon: Users, label: "Teachers" },
             { value: "gallery", icon: Image, label: "Gallery" },
             { value: "events", icon: Calendar, label: "Events" },
@@ -1287,6 +1549,9 @@ export function AdminPage({
         </TabsContent>
         <TabsContent value="applications">
           <ApplicationsTab />
+        </TabsContent>
+        <TabsContent value="leadership">
+          <LeadershipAdmin />
         </TabsContent>
         <TabsContent value="teachers">
           <TeachersAdmin />

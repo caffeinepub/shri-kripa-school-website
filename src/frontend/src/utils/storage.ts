@@ -29,6 +29,15 @@ export interface Teacher {
   speciality: string;
 }
 
+export interface LeadershipMember {
+  id: string;
+  name: string;
+  photo: string;
+  post: string;
+  contact: string;
+  order: number;
+}
+
 export interface GalleryImage {
   id: string;
   imageUrl: string;

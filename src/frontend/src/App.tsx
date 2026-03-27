@@ -11,11 +11,13 @@ import { TeachersPage } from "@/pages/TeachersPage";
 import {
   getEvents,
   getGallery,
+  getLeadership,
   getSettings,
   getTeachers,
 } from "@/utils/firebaseService";
 import type {
   GalleryImage,
+  LeadershipMember,
   SchoolEvent,
   SchoolSettings,
   Teacher,
@@ -23,7 +25,7 @@ import type {
 import { DEFAULT_SETTINGS } from "@/utils/storage";
 import { useCallback, useEffect, useState } from "react";
 
-// ─── WhatsApp Floating Button ─────────────────────────────────────────────────
+// ─── WhatsApp Floating Button ──────────────────────────────────────────────────
 function WhatsAppButton() {
   return (
     <a
@@ -47,7 +49,7 @@ function WhatsAppButton() {
   );
 }
 
-// ─── Hash Router ─────────────────────────────────────────────────────────────
+// ─── Hash Router ────────────────────────────────────────────────────────────────
 function getPath(): string {
   const hash = window.location.hash.slice(1);
   return hash || "/";
@@ -59,6 +61,7 @@ export default function App() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [leadership, setLeadership] = useState<LeadershipMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   const navigate = useCallback((to: string) => {
@@ -76,16 +79,18 @@ export default function App() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [s, t, g, e] = await Promise.all([
+        const [s, t, g, e, l] = await Promise.all([
           getSettings(),
           getTeachers(),
           getGallery(),
           getEvents(),
+          getLeadership(),
         ]);
         setSettings(s);
         setTeachers(t);
         setGallery(g);
         setEvents(e);
+        setLeadership(l);
       } catch (err) {
         console.error("Failed to load data from Firebase", err);
       } finally {
@@ -98,16 +103,18 @@ export default function App() {
   // Refresh data when returning from admin panel
   const refreshData = useCallback(async () => {
     try {
-      const [s, t, g, e] = await Promise.all([
+      const [s, t, g, e, l] = await Promise.all([
         getSettings(),
         getTeachers(),
         getGallery(),
         getEvents(),
+        getLeadership(),
       ]);
       setSettings(s);
       setTeachers(t);
       setGallery(g);
       setEvents(e);
+      setLeadership(l);
     } catch (err) {
       console.error("Failed to refresh data", err);
     }
@@ -141,6 +148,7 @@ export default function App() {
           teachers={teachers}
           gallery={gallery}
           events={events}
+          leadership={leadership}
           navigate={navigate}
         />
       );

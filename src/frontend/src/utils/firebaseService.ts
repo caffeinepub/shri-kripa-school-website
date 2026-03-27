@@ -12,6 +12,7 @@ import type {
   Admission,
   AdmissionStatus,
   GalleryImage,
+  LeadershipMember,
   SchoolEvent,
   SchoolSettings,
   Teacher,
@@ -28,7 +29,7 @@ export async function uploadImage(
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX = 600;
+        const MAX = 900; // increased from 600 for better quality
         let w = img.width;
         let h = img.height;
         if (w > MAX) {
@@ -42,7 +43,7 @@ export async function uploadImage(
         canvas.width = w;
         canvas.height = h;
         canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/jpeg", 0.6));
+        resolve(canvas.toDataURL("image/jpeg", 0.75)); // increased from 0.6
       };
       img.onerror = () => resolve(base64);
       img.src = base64;
@@ -125,6 +126,35 @@ export async function saveTeacher(teacher: Teacher): Promise<void> {
 
 export async function deleteTeacher(id: string): Promise<void> {
   await deleteDoc(doc(db, "teachers", id));
+}
+
+// ─── Leadership ───────────────────────────────────────────────────────────────
+export async function getLeadership(): Promise<LeadershipMember[]> {
+  try {
+    const snap = await getDocs(collection(db, "leadership"));
+    const members = snap.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as LeadershipMember,
+    );
+    return members.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  } catch (e) {
+    console.error("getLeadership error", e);
+    return [];
+  }
+}
+
+export async function saveLeadershipMember(
+  member: LeadershipMember,
+): Promise<void> {
+  const id = String(member.id || genId()).trim();
+  let photo = member.photo;
+  if (photo?.startsWith("data:")) {
+    photo = await uploadImage(photo, `leadership/${id}`);
+  }
+  await setDoc(doc(db, "leadership", id), { ...member, id, photo });
+}
+
+export async function deleteLeadershipMember(id: string): Promise<void> {
+  await deleteDoc(doc(db, "leadership", id));
 }
 
 // ─── Gallery ───────────────────────────────────────────────────────────────────
